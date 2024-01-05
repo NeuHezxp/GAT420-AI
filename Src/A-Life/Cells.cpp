@@ -23,6 +23,7 @@ void Cells::Step()
 			return v ? (color << 24 | color << 16 | color << 8 | 0xff) : 0;
 		});
 
+
 	// copy color buffer to texture
 	texture->Copy(color_buffer);
 }
