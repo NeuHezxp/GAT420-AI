@@ -19,8 +19,8 @@ void GameOfLife::Step()
 	frame++;
 	Write<uint8_t>(buffer, size.x / 2, 0, 1);
 
-	std::vector<uint8_t>& readBuffer = (frame % 2 == 0) ? bufferA : bufferB;
-	std::vector<uint8_t>& writeBuffer = (frame % 2 == 0) ? bufferB : bufferA;
+	std::vector<uint8_t>& readBuffer = (frame % 2 == 1) ? bufferA : bufferB;
+	std::vector<uint8_t>& writeBuffer = (frame % 2 == 1) ? bufferB : bufferA;
 
 	// rule 30 = 00011110 (binary)
 	static uint8_t rule = 108;
@@ -35,25 +35,33 @@ void GameOfLife::Step()
 	{
 		for (int x = 0; x < size.x; x++)
 		{
-			int weight = 0;
+			int weight = 0; //amount of surviving neighbors
 
 			// read surrounding 8 cells, accumulate weight
 			// XXX
 			// X0X
 			// XXX
-			weight += Read<uint8_t>(readBuffer, x,y);
+			weight += Read<uint8_t>(readBuffer, x - 1, y - 1);
+			weight += Read<uint8_t>(readBuffer, x + 0, y - 1);
+			weight += Read<uint8_t>(readBuffer, x + 1, y - 1);
+			weight += Read<uint8_t>(readBuffer, x - 1, y + 0);
+			weight += Read<uint8_t>(readBuffer, x + 1, y + 0);
+			weight += Read<uint8_t>(readBuffer, x - 1, y + 1);
+			weight += Read<uint8_t>(readBuffer, x + 0, y + 1);
+			weight += Read<uint8_t>(readBuffer, x + 1, y + 1);
 
 			// game of life rules
 		   // if cell is alive, update
 			if (Read<uint8_t>(readBuffer, x, y))
 			{
-				if (rule) Write<uint8_t>(writeBuffer,x,y,1);
-				//...
+				if (weight < 2) Write<uint8_t>(writeBuffer, x, y, 0);
+				else if (weight == 2 || weight == 3) Write<uint8_t>(writeBuffer, x, y, 1);
+				else if (weight > 3) Write<uint8_t>(writeBuffer, x, y, 0);
 			}
 			else
 			{
 				// if cell is dead, update
-				if (rule) Write<uint8_t>(writeBuffer,x,y,0);
+				if (weight == 3) Write<uint8_t>(writeBuffer, x, y, 1);
 			}
 		}
 	}
